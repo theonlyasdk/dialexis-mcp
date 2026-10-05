@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "dialexis-mcp": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "dialexis_mcp"],
+      "env": {
+        "DIALEXIS_OUTPUT_DIR": "./exports"
+      }
+    }
+  }
+}

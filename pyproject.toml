@@ -1,0 +1,35 @@
+[project]
+name = "dialexis-mcp"
+version = "0.1.0"
+description = "Token-efficient MCP server + Agent Skills for writing neat documents (md, docx, pptx, xlsx, pdf, html)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "ASDK" }]
+keywords = ["mcp", "docx", "pptx", "pdf", "agent-skills", "opencode", "claude-code", "codex"]
+dependencies = [
+  "mcp>=2.0",
+  "python-docx>=1.1",
+  "python-pptx>=0.6.23",
+  "openpyxl>=3.1",
+  "pypdf>=5.0",
+  "reportlab>=4.0",
+  "markdown>=3.6",
+  "beautifulsoup4>=4.12",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+dialexis-mcp = "dialexis_mcp.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dialexis_mcp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
