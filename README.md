@@ -1,69 +1,55 @@
 # dialexis-mcp
-Tools for writing authentic documents with AI. Token-efficient MCP + Agent Skills for `md/docx/pptx/xlsx/pdf/html`.
 
-## Install
+Write neat documents with AI — reports, memos, slides, spreadsheets, PDFs.
+You write markdown, dialexis-mcp handles the formatting.
 
-```bash
-pip install dialexis-mcp
-# or from source:
-pip install -e .
-```
+Supports `md`, `docx`, `pptx`, `xlsx`, `pdf`, and `html`.
 
-Run: `python -m dialexis_mcp` (stdio) or `python -m dialexis_mcp --http --port 8000`.
-
-`DIALEXIS_OUTPUT_DIR` (default `./exports`) controls where files are written.
-
-## Connect
-
-**Claude Code** — project `.mcp.json` already commits stdio config. Or manual:
+## Quick start
 
 ```bash
-claude mcp add --scope project dialexis-mcp -- python -m dialexis_mcp
+git clone https://github.com/theonlyasdk/dialexis-mcp.git
+cd dialexis-mcp
+pip install -e ".[dev]"
 ```
 
-**Antigravity** — workspace config in `.agents/mcp_config.json` (same stdio command).
+Just want a machine to set it all up? Hand it [`AUTOSETUP.md`](AUTOSETUP.md).
 
-**OpenCode** — `opencode.jsonc`:
+## Connect your AI tool
 
-```json
-{ "mcp": { "dialexis-mcp": { "type": "local", "command": ["python", "-m", "dialexis_mcp"], "enabled": true } } }
-```
+- **Claude Code** — already configured via `.mcp.json`. Nothing to do.
+- **Antigravity** — already configured via `.agents/mcp_config.json`. Just restart the workspace.
+- **OpenCode** — add to `opencode.jsonc`:
+  ```json
+  { "mcp": { "dialexis-mcp": { "type": "local", "command": ["python", "-m", "dialexis_mcp"], "enabled": true } } }
+  ```
+- **Codex CLI** — add to `~/.codex/config.toml`:
+  ```toml
+  [mcp_servers.dialexis-mcp]
+  command = "python"
+  args = ["-m", "dialexis_mcp"]
+  ```
 
-**Codex CLI** — `~/.codex/config.toml`:
+## How it works
 
-```toml
-[mcp_servers.dialexis-mcp]
-command = "python"
-args = ["-m", "dialexis_mcp"]
-```
+1. Draft your content as markdown (`# Title`, `## Sections`, bullet lists, tables).
+2. Ask for a document — e.g. *"turn this into a Word doc"*.
+3. You get back a file path. That's it.
 
-Skills live in `skills/` (canonical), mirrored to `.agents/skills/`, `.claude/skills/`, `.opencode/skills/`. Re-sync after edits:
+Files land in `./exports` (change with `DIALEXIS_OUTPUT_DIR`). Every heading
+level, table, and list is styled automatically — no manual formatting.
 
-```bash
-python scripts/sync_skills.py
-```
+Extras: convert between formats, make small edits without rewriting the whole
+file, fill reusable templates (`report`, `memo`, `slides`, `meeting-notes`,
+`table-sheet`), and validate files before sharing.
 
-## Tools (7, all return paths — never bytes)
-
-| Tool | Purpose |
-|---|---|
-| `create_document(markdown, format, file_name?)` | md/docx/pptx/xlsx/pdf/html from markdown |
-| `read_document(path, detail_level, page, page_size)` | back to markdown, paginated; `summary` first |
-| `convert_document(path, to_format)` | via markdown IR |
-| `edit_document(path, append_markdown, find, replace)` | surgical fix, no rewrite |
-| `list_templates` / `fill_template(template, variables, format)` | `{{var}}` docs |
-| `validate_document(path)` | opens OK + shape (slides/pages/sheets) |
-
-## Token rules
-
-1. Draft markdown only. `##` splits slides; `| tables |` feed xlsx.
-2. `read(summary)` → page only if needed. `edit(find/replace)` beats rewrite.
-3. `fill_template` beats free-form for repeats.
-4. `validate_document` before handing files to users.
-
-## Dev
+## For contributors
 
 ```bash
 pip install -e ".[dev]"
 pytest -q
+python scripts/sync_skills.py   # after editing anything in skills/
 ```
+
+Skills live in `skills/` and are mirrored to `.agents/skills/`,
+`.claude/skills/`, and `.opencode/skills/` so every harness picks them up.
