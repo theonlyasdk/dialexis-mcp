@@ -6,63 +6,69 @@ license: MIT
 
 # Ghostwriter
 
-Raw material in, human draft out. The draft then goes to `dialexis-write`
-(`create_document`) for export — this skill covers words, not file formats.
+Raw material in, human draft out. This skill covers words only. File export
+is handled by `dialexis-write` (`create_document`).
 
-## 1. Digest the source
+## When to use
 
-- Extract: claims, decisions, anecdotes, numbers, names, direct quotes. Discard filler.
-- Note what's MISSING: every gap becomes either a question for the user or a
-  clearly-marked `[TODO]` — never invent facts, quotes, or statistics.
-- If the source is a transcript: merge scattered repetitions of one point into
-  a single statement; keep the speaker's best phrasing verbatim where it sings.
+Rough transcripts, scattered notes, research dumps, or any draft that sounds
+robotic. If the content is already clean, skip straight to `dialexis-write`.
 
-## 2. Match the voice
+## Stage 1. Digest the source
 
-Pick one, or blend. If user samples exist, imitate their fingerprint instead:
+- Extract claims, decisions, anecdotes, numbers, names, and direct quotes.
+  Discard filler.
+- Mark every gap as a question for the user or a `[TODO]`. Never invent
+  facts, quotes, or statistics.
+- Transcripts: merge repetitions of one point into a single statement. Keep
+  the speaker's best phrasing verbatim where it sings.
 
-- **Conversational:** short paragraphs, contractions, direct address ("you").
-  Best for posts, newsletters, memos.
-- **Analytical:** calm, precise, numbers-first, conclusions up front. Best for
-  reports, proposals, decision docs.
-- **Terse:** fragments allowed, no throat-clearing. Best for exec summaries,
-  slide speaker notes, action items.
+## Stage 2. Match the voice
 
-Voice fingerprint to copy from samples: sentence length rhythm, favorite
-transitions, humor level, how they open (story? stat? blunt claim?) and close
-(decision? question? call to action?).
+Pick one mode, or blend. If user writing samples exist, imitate them instead
+(see Fingerprint below).
 
-## 3. Structure before sentences
+| Mode | Style | Best for |
+| --- | --- | --- |
+| Conversational | Short paragraphs, contractions, direct "you" | Posts, newsletters, memos |
+| Analytical | Calm, precise, numbers first, conclusion up front | Reports, proposals, decisions |
+| Terse | Fragments allowed, zero throat clearing | Summaries, slide notes, actions |
 
-- One idea per section; headings that carry meaning alone (`## Costs grew 3x
-  after the migration`, not `## Costs`).
-- Open with the point (BLUF) — background goes second, never first.
-- End with a decision, next step, or question. Never end with a summary of the
-  summary ("In conclusion, this document has shown...").
+Fingerprint (from samples): sentence length rhythm, favorite transitions,
+humor level, how pieces open (story, stat, blunt claim) and close (decision,
+question, call to action).
 
-## 4. Humanize the draft
+## Stage 3. Structure first
 
-- **Vary rhythm:** alternate short punches with longer flowing sentences.
-  Three same-length sentences in a row is the classic AI tell — break it up.
-- **One concrete detail per section:** a name, number, place, or quoted phrase.
-  Abstract claims without evidence sound generated.
-- **Cut the tells:** robotic triads ("fast, reliable, and scalable"), "delve",
-  "tapestry", "moreover/furthermore", em-dash chains, hedged non-conclusions
-  ("it's important to note that..."), hype adjectives with no proof.
-- **Prefer verbs over nouns:** "we decided" beats "a decision was made";
-  active voice, named actors, no throat-clearing openers.
-- **Keep the rough edges that earn trust:** a conceded drawback, a number that
-  isn't round, an admission of uncertainty where it genuinely exists.
+1. One idea per section.
+2. Headings that stand alone (`## Costs tripled after the migration`, not
+   `## Costs`).
+3. Open with the point. Background goes second, never first.
+4. End with a decision, next step, or question. Never a summary of the summary.
 
-## 5. QA pass (read it aloud)
+## Stage 4. Humanize
 
-- If a sentence can't be spoken in one breath, split it.
-- Check every number/name/quote against the source — no drift.
-- Check headings alone tell the story.
-- Confirm the ending asks for or states something.
+- **Vary rhythm.** Alternate short punches with longer sentences. Three
+  same-length sentences in a row is the classic AI tell.
+- **One concrete detail per section.** A name, number, place, or quoted
+  phrase. Abstract claims without evidence sound generated.
+- **Cut the tells.** Robotic triads, "delve", "tapestry", "moreover",
+  hedged non-conclusions ("it is important to note that"), hype adjectives
+  with no proof, chains of parenthetical asides.
+- **Verbs over nouns.** "We decided" beats "a decision was made". Active
+  voice, named actors.
+- **Keep honest rough edges.** A conceded drawback, an unrounded number, a
+  genuine uncertainty. Perfection reads as synthetic.
 
-## 6. Hand off
+## Stage 5. QA (read it aloud)
 
-Output clean markdown (headings, bullets, `| tables |`) and pass it to
-`dialexis-write`. Mention any `[TODO]` gaps so the user can fill them before
-export. For house formatting rules, also load `dialexis-style`.
+- [ ] Every sentence speakable in one breath (else split it)
+- [ ] Every number, name, and quote matches the source
+- [ ] Headings alone tell the story
+- [ ] The ending states or asks for something
+
+## Stage 6. Hand off
+
+Emit clean markdown (headings, bullets, `| tables |`) and pass it to
+`dialexis-write`. Flag any `[TODO]` gaps first. For formatting rules, also
+load `dialexis-style`.
