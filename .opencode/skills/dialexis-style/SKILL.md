@@ -6,19 +6,22 @@ license: MIT
 
 # dialexis-style
 
+Research-paper look. Simple, no decoration. The MCP server applies these
+fonts automatically; this skill is for wording and structure choices.
+
+## Typography (automatic)
+
+- Headings and front-page title: Instrument Serif (bundled, embedded in PDF).
+- Body: Times New Roman 12pt (PDF uses built-in Times-Roman, same family).
+- Code stays monospace. Tables use a light grid.
+
 ## Structure
 
 - One `# Title`, then `##` sections. Front-load the conclusion (BLUF).
-- Paragraphs ≤ 4 lines. Prefer bullets and tables over walls of text.
-- Every table gets a header row. Every slide gets a takeaway title, not "Slide 3".
+- Paragraphs of at most 4 lines. Bullets and tables over walls of text.
+- Every table gets a header row. Every slide gets a takeaway title.
 
 ## Tone
 
 - Plain, active voice. No filler ("delve", "leverage", "in today's fast-paced").
 - Numbers with units. Dates as `2026-10-05`.
-
-## Formatting
-
-- `docx/pdf`: 11pt body, real headings (not bold paragraphs), `Light Grid` tables.
-- `pptx`: ≤ 6 bullets/slide, ≤ 220 chars per bullet.
-- `xlsx`: headers bold, one table per sheet region, column A width 100.

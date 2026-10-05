@@ -1,0 +1,6 @@
+Instrument Serif — SIL Open Font License 1.1
+https://github.com/google/fonts/tree/main/ofl/instrumentserif
+
+Files: InstrumentSerif-Regular.ttf, InstrumentSerif-Italic.ttf
+Used by dialexis-mcp as the display face for document titles/headings
+(paired with Times New Roman body), embedded in PDF output.

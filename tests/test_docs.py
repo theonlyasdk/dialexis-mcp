@@ -102,10 +102,42 @@ def test_safe_names_and_errors():
         D.create_from_markdown("x" * 400_001, "md")
 
 
+def test_house_fonts_applied():
+    from docx import Document
+
+    p = D.create_from_markdown(SAMPLE, "docx", "fonts-docx")
+    doc = Document(str(p))
+    assert doc.styles["Normal"].font.name == "Times New Roman"
+    assert doc.styles["Heading 1"].font.name == "Instrument Serif"
+    from pptx import Presentation
+
+    q = D.create_from_markdown(SAMPLE, "pptx", "fonts-pptx")
+    slide = Presentation(str(q)).slides[0]
+    assert slide.shapes.title.text_frame.paragraphs[0].runs[0].font.name == "Instrument Serif"
+    r = D.create_from_markdown(SAMPLE, "pdf", "fonts-pdf")
+    from pypdf import PdfReader
+
+    assert len(PdfReader(str(r)).pages) >= 1
+    h = D.create_from_markdown(SAMPLE, "html", "fonts-html")
+    html = h.read_text(encoding="utf-8")
+    assert "Instrument Serif" in html and "Times New Roman" in html
+
+
+def test_bundle_creates_all_formats():
+    paths = D.create_bundle(SAMPLE, ["docx", "pdf", "md"], "bundle-test")
+    assert len(paths) == 3
+    assert sorted(p.suffix for p in paths) == [".docx", ".md", ".pdf"]
+    assert all(p.exists() and p.stat().st_size > 0 for p in paths)
+    with pytest.raises(ValueError):
+        D.create_bundle(SAMPLE, [], "bundle-empty")
+    with pytest.raises(ValueError):
+        D.create_bundle(SAMPLE, ["exe"], "bundle-bad")
+
+
 def test_server_tools_callable():
     from dialexis_mcp import server as S
 
-    expected = {"create_document", "read_document", "convert_document", "edit_document",
+    expected = {"create_document", "create_bundle", "read_document", "convert_document", "edit_document",
                 "list_templates", "fill_template", "validate_document"}
     for fn in expected:
         assert callable(getattr(S, fn, None)), fn

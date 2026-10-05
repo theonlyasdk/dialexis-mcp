@@ -36,6 +36,24 @@ def create_document(
         return f"Error: {e}"
 
 
+@server.tool(description="Save one document in several formats at once (e.g. docx+pdf+pptx). One call, one path per format. Ask the user which formats first.")
+def create_bundle(
+    markdown: Annotated[str, Field(description="Full markdown source. H1 = title. Max 400k chars.")],
+    formats: Annotated[list[str], Field(description="Formats to save, e.g. [\"docx\", \"pdf\"]. Choices: md, docx, pptx, xlsx, pdf, html.")] = ["docx", "pdf"],  # noqa: B006
+    file_name: Annotated[str | None, Field(description="Optional base name, e.g. 'q3-report'")] = None,
+) -> str:
+    """Save multiple formats at once."""
+    try:
+        paths = D.create_bundle(markdown, formats, file_name)
+        lines = []
+        for p in paths:
+            info = D.file_info(p)
+            lines.append(f"- {info['path']} ({info['format']}, {info['bytes']} bytes)")
+        return "Saved bundle:\n" + "\n".join(lines)
+    except (ValueError, OSError) as e:
+        return f"Error: {e}"
+
+
 @server.tool(description="Read a document back as markdown with pagination. Prefer detail_level summary/metadata_only first to save tokens.")
 def read_document(
     path: Annotated[str, Field(description="Path returned by create_document, or any existing md/docx/pptx/xlsx/pdf/html/txt file.")],

@@ -15,7 +15,19 @@ from pathlib import Path
 
 SUPPORTED_FORMATS = ("md", "docx", "pptx", "xlsx", "pdf", "html")
 
+# House style: research-paper look. Display face for titles/headings,
+# workhorse serif for body. Simple, no decoration.
+TITLE_FONT = "Instrument Serif"
+BODY_FONT = "Times New Roman"
+# ReportLab built-in equivalent of Times New Roman (always available in PDFs).
+PDF_BODY_FONT = "Times-Roman"
+PDF_BODY_BOLD = "Times-Bold"
+
 _FILENAME_BAD = re.compile(r"[^A-Za-z0-9._-]+")
+
+
+def fonts_dir() -> Path:
+    return Path(__file__).resolve().parent / "assets" / "fonts"
 
 
 def get_output_dir() -> Path:
@@ -188,16 +200,28 @@ def add_md_runs(paragraph, text: str) -> None:
 
 def write_docx(blocks: list[MdBlock], title: str, path: Path) -> None:
     from docx import Document
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
     from docx.shared import Pt, RGBColor
 
     doc = Document()
-    # Narrow, readable defaults
-    style = doc.styles["Normal"]
-    style.font.size = Pt(11)
+    # Research-paper look: Times body, Instrument Serif display headings.
+    normal = doc.styles["Normal"]
+    normal.font.name = BODY_FONT
+    normal.font.size = Pt(12)
+    for hs, size in (("Title", 28), ("Heading 1", 18), ("Heading 2", 15), ("Heading 3", 13)):
+        try:
+            st = doc.styles[hs]
+            st.font.name = TITLE_FONT
+            st.font.size = Pt(size)
+            st.font.color.rgb = RGBColor(0x1A, 0x1A, 0x1A)
+        except KeyError:
+            pass
     if title:
         h = doc.add_heading(title, level=0)
+        h.alignment = WD_ALIGN_PARAGRAPH.CENTER
         for r in h.runs:
-            r.font.color.rgb = RGBColor(0x1F, 0x29, 0x37)
+            r.font.name = TITLE_FONT
+            r.font.color.rgb = RGBColor(0x1A, 0x1A, 0x1A)
     for b in blocks:
         if b.kind == "heading" and not (b.level == 1 and b.text == title):
             lvl = min(max(b.level, 1), 4)
@@ -304,16 +328,38 @@ def write_pptx(blocks: list[MdBlock], title: str, path: Path) -> None:
                     p = body.paragraphs[0] if first else body.add_paragraph()
                     p.text = txt
                     first = False
-        # readable font size
+        # house fonts: Instrument Serif titles, Times body
         for shape in slide.placeholders:
             if shape.has_text_frame:
+                is_title = shape == slide.shapes.title
                 for para in shape.text_frame.paragraphs:
                     for run in para.runs:
                         try:
-                            run.font.size = PPt(18 if para == shape.text_frame.paragraphs[0] else 14)
+                            run.font.size = PPt(32 if is_title else 18)
+                            run.font.name = TITLE_FONT if is_title else BODY_FONT
                         except Exception:
                             pass
     prs.save(str(path))
+
+
+def _register_pdf_fonts() -> tuple[str, str]:
+    """Register bundled Instrument Serif for PDF output. Returns (display, display_italic)."""
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+
+    fd = fonts_dir()
+    display, italic = TITLE_FONT, TITLE_FONT
+    try:
+        pdfmetrics.registerFont(TTFont("InstrumentSerif", str(fd / "InstrumentSerif-Regular.ttf")))
+        display = "InstrumentSerif"
+    except Exception:
+        pass
+    try:
+        pdfmetrics.registerFont(TTFont("InstrumentSerif-Italic", str(fd / "InstrumentSerif-Italic.ttf")))
+        italic = "InstrumentSerif-Italic"
+    except Exception:
+        pass
+    return display, italic
 
 
 def write_pdf(blocks: list[MdBlock], title: str, path: Path) -> None:
@@ -324,10 +370,25 @@ def write_pdf(blocks: list[MdBlock], title: str, path: Path) -> None:
     from reportlab.lib import colors
     import html as _html
 
+    display, _italic = _register_pdf_fonts()
+
     def esc(t: str) -> str:
         return _html.escape(strip_md_inline(t or ""))
 
     styles = getSampleStyleSheet()
+    # research-paper look: serif display title, Times body
+    styles["Title"].fontName = display
+    styles["Title"].fontSize = 26
+    styles["Title"].alignment = 1  # centered
+    styles["Title"].spaceAfter = 12
+    for hs, size in (("Heading1", 16), ("Heading2", 13), ("Heading3", 11)):
+        styles[hs].fontName = display
+        styles[hs].fontSize = size
+    styles["Normal"].fontName = PDF_BODY_FONT
+    styles["Normal"].fontSize = 12
+    styles["Normal"].leading = 15
+    styles["Code"].fontName = "Courier"
+    styles["Code"].fontSize = 8
     story = []
     if title:
         story += [Paragraph(esc(title), styles["Title"]), Spacer(1, 12)]
@@ -363,30 +424,30 @@ def write_xlsx(blocks: list[MdBlock], title: str, path: Path) -> None:
     ws = wb.active
     ws.title = re.sub(r"[\\/*?:\[\]]", "", (title or "Sheet"))[:31] or "Sheet"
     row = 1
-    ws.cell(row=row, column=1, value=title).font = Font(bold=True, size=14)
+    ws.cell(row=row, column=1, value=title).font = Font(name=TITLE_FONT, bold=True, size=16)
     row += 2
     for b in blocks:
         if b.kind == "heading":
-            ws.cell(row=row, column=1, value=strip_md_inline(b.text)).font = Font(bold=True, size=12)
+            ws.cell(row=row, column=1, value=strip_md_inline(b.text)).font = Font(name=TITLE_FONT, bold=True, size=12)
             row += 1
         elif b.kind in ("paragraph", "code"):
-            ws.cell(row=row, column=1, value=strip_md_inline(b.text)[:30000])
+            ws.cell(row=row, column=1, value=strip_md_inline(b.text)[:30000]).font = Font(name=BODY_FONT, size=11)
             row += 1
         elif b.kind in ("bullets", "numbered"):
             for k, item in enumerate(b.items or [], 1):
                 prefix = "" if b.kind == "bullets" else f"{k}. "
-                ws.cell(row=row, column=1, value=(prefix + strip_md_inline(item))[:30000])
+                ws.cell(row=row, column=1, value=(prefix + strip_md_inline(item))[:30000]).font = Font(name=BODY_FONT, size=11)
                 row += 1
         elif b.kind == "table":
-            ws.cell(row=row, column=1, value="TABLE: " + " | ".join(b.headers or [])).font = Font(bold=True)
+            ws.cell(row=row, column=1, value="TABLE: " + " | ".join(b.headers or [])).font = Font(name=TITLE_FONT, bold=True, size=11)
             row += 1
             if b.headers:
                 for j, h in enumerate(b.headers, 1):
-                    ws.cell(row=row, column=j, value=strip_md_inline(h)).font = Font(bold=True)
+                    ws.cell(row=row, column=j, value=strip_md_inline(h)).font = Font(name=BODY_FONT, bold=True, size=11)
                 row += 1
                 for r in (b.rows or []):
                     for j in range(len(b.headers)):
-                        ws.cell(row=row, column=j + 1, value=strip_md_inline(r[j] if j < len(r) else "")[:30000])
+                        ws.cell(row=row, column=j + 1, value=strip_md_inline(r[j] if j < len(r) else "")[:30000]).font = Font(name=BODY_FONT, size=11)
                     row += 1
             row += 1
         if row > 9000:
@@ -402,8 +463,12 @@ def write_md_html(md: str, path: Path) -> None:
         body = _md.markdown(md or "", extensions=["tables", "fenced_code"])
         path.write_text(
             f"<!doctype html><html><head><meta charset='utf-8'>"
-            f"<title>{strip_md_inline(extract_title(md))}</title></head>"
-            f"<body style='max-width:800px;margin:40px auto;font-family:sans-serif'>{body}</body></html>",
+            f"<title>{strip_md_inline(extract_title(md))}</title>"
+            f"<link href='https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap' rel='stylesheet'>"
+            f"<style>body{{max-width:760px;margin:40px auto;font-family:'Times New Roman',Times,serif;font-size:18px;line-height:1.6;color:#1a1a1a}}"
+            f"h1,h2,h3{{font-family:'Instrument Serif','Times New Roman',serif;font-weight:400}}"
+            f"h1{{font-size:2.4em;text-align:center}}table{{border-collapse:collapse}}td,th{{border:1px solid #999;padding:6px 10px}}</style>"
+            f"</head><body>{body}</body></html>",
             encoding="utf-8",
         )
     else:
@@ -432,6 +497,22 @@ def create_from_markdown(md: str, fmt: str, file_name: str | None = None) -> Pat
     else:
         write_md_html(md, path)
     return path
+
+
+def create_bundle(md: str, formats: list[str], file_name: str | None = None) -> list[Path]:
+    """Create the same document in several formats at once. One call, many files."""
+    seen: list[str] = []
+    for f in formats or []:
+        f = (f or "").lower().lstrip(".")
+        if f not in SUPPORTED_FORMATS:
+            raise ValueError(f"Unsupported format '{f}'. Choose from {SUPPORTED_FORMATS}")
+        if f not in seen:
+            seen.append(f)
+    if not seen:
+        raise ValueError(f"No formats given. Choose from {SUPPORTED_FORMATS}")
+    if len(seen) > 6:
+        raise ValueError("At most 6 formats per bundle")
+    return [create_from_markdown(md, f, file_name) for f in seen]
 
 
 # ---------------------------------------------------------------- readers

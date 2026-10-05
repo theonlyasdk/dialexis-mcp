@@ -17,8 +17,8 @@ async def main():
             names = [t.name for t in tools.tools]
             print("TOOLS:", names)
             assert "create_document" in names
-            assert "read_document" in names
-            assert len(names) == 7, names
+            assert "create_bundle" in names
+            assert len(names) == 8, names
             res = await s.call_tool("create_document", {"markdown": "# E2E\n\n## Hello\n\n- a\n- b\n", "format": "docx", "file_name": "e2e-doc"})
             print("CREATE:", res.content[0].text if res.content else res)
             assert "Saved:" in res.content[0].text
@@ -30,6 +30,9 @@ async def main():
             res3 = await s.call_tool("validate_document", {"path": path})
             print("VALIDATE:", res3.content[0].text if res3.content else "")
             assert "Valid:" in res3.content[0].text
+            res4 = await s.call_tool("create_bundle", {"markdown": "# E2E\n\nBody.\n", "formats": ["docx", "pdf"], "file_name": "e2e-bundle"})
+            print("BUNDLE:", res4.content[0].text if res4.content else "")
+            assert "Saved bundle:" in res4.content[0].text
             print("E2E OK")
 
 asyncio.run(main())
