@@ -1,9 +1,9 @@
 # dialexis-mcp
 
-Write neat documents with AI — reports, memos, slides, spreadsheets, PDFs.
+Write neat documents with AI: reports, memos, slides, spreadsheets, PDFs.
 You write markdown, dialexis-mcp handles the formatting.
 
-Supports `md`, `docx`, `pptx`, `xlsx`, `pdf`, and `html`.
+Supported formats: `md`, `docx`, `pptx`, `xlsx`, `pdf`, `html`.
 
 ## Quick start
 
@@ -13,35 +13,51 @@ cd dialexis-mcp
 pip install -e ".[dev]"
 ```
 
-Just want a machine to set it all up? Hand it [`AUTOSETUP.md`](AUTOSETUP.md).
+Want a machine to set it all up? Hand it [`AUTOSETUP.md`](AUTOSETUP.md).
 
 ## Connect your AI tool
 
-- **Claude Code** — already configured via `.mcp.json`. Nothing to do.
-- **Antigravity** — already configured via `.agents/mcp_config.json`. Just restart the workspace.
-- **OpenCode** — add to `opencode.jsonc`:
-  ```json
-  { "mcp": { "dialexis-mcp": { "type": "local", "command": ["python", "-m", "dialexis_mcp"], "enabled": true } } }
-  ```
-- **Codex CLI** — add to `~/.codex/config.toml`:
-  ```toml
-  [mcp_servers.dialexis-mcp]
-  command = "python"
-  args = ["-m", "dialexis_mcp"]
-  ```
+### Claude Code
+
+Already configured via `.mcp.json`. Nothing to do.
+
+### Antigravity
+
+Already configured via `.agents/mcp_config.json`. Just restart the workspace.
+
+### OpenCode
+
+Add to `opencode.jsonc`:
+
+```json
+{ "mcp": { "dialexis-mcp": { "type": "local", "command": ["python", "-m", "dialexis_mcp"], "enabled": true } } }
+```
+
+### Codex CLI
+
+Add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.dialexis-mcp]
+command = "python"
+args = ["-m", "dialexis_mcp"]
+```
 
 ## How it works
 
-1. Draft your content as markdown (`# Title`, `## Sections`, bullet lists, tables).
-2. Ask for a document — e.g. *"turn this into a Word doc"*.
-3. You get back a file path. That's it.
+1. Draft content as markdown (`# Title`, `## Sections`, lists, tables).
+2. Ask for a document (for example: "turn this into a Word doc").
+3. You get back a file path. Done.
 
-Files land in `./exports` (change with `DIALEXIS_OUTPUT_DIR`). Every heading
-level, table, and list is styled automatically — no manual formatting.
+Files land in `./exports` (override with `DIALEXIS_OUTPUT_DIR`). Headings,
+tables, and lists are styled automatically. No manual formatting needed.
 
-Extras: convert between formats, make small edits without rewriting the whole
-file, fill reusable templates (`report`, `memo`, `slides`, `meeting-notes`,
-`table-sheet`), and validate files before sharing.
+### Extras
+
+- Convert between formats
+- Small edits without rewriting the whole file
+- Reusable templates: `report`, `memo`, `slides`, `meeting-notes`, `table-sheet`
+- Validate files before sharing
 
 ## For contributors
 
@@ -52,4 +68,4 @@ python scripts/sync_skills.py   # after editing anything in skills/
 ```
 
 Skills live in `skills/` and are mirrored to `.agents/skills/`,
-`.claude/skills/`, and `.opencode/skills/` so every harness picks them up.
+`.claude/skills/`, and `.opencode/skills/`, so every harness picks them up.
